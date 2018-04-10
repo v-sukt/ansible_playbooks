@@ -1,0 +1,14 @@
+---
+- hosts: localhost 
+  tasks:
+    - script: ./scripts/remote-info.sh
+      register: infom
+    - command: echo -e "{{ infom.stdout|to_json }}"
+      register: a
+    - set_fact:
+        remote_facts: "{{ a.stdout }}"
+    - debug: var=remote_facts
+    - name: fact_one
+      debug: msg="{{ remote_facts.srv_facts.fact_one }}"
+    - name: other_fact
+      debug: msg="{{ remote_facts.srv_facts.other_fact }}"
