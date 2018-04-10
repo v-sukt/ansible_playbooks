@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  vars:
+    motd: "Hi, Welcome to my system"
+  tasks:
+    - debug: msg="adding - {{motd}}, as the system message(/etc/motd)"
+    - copy:
+        backup: yes
+        dest: /etc/motd
+        content: '{{motd}}'
+# need to use the -b option to become the sudo(default) or add 'user: root' line after hosts line

@@ -1,0 +1,6 @@
+---
+- hosts: localhost 
+  vars:
+    my_name: rajshekhar
+  tasks:
+   - debug: msg='Hi {{my_name}}'

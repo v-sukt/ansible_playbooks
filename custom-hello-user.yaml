@@ -1,0 +1,7 @@
+---
+- hosts: localhost 
+  prompt_vars:
+   - name: user_name
+     prompt: "Hi, Please type your name..."
+  tasks:
+   - debug: msg='Hi {{user_name}}'
