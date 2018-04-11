@@ -1,0 +1,45 @@
+---
+- hosts: bastion
+  become: yes
+  gather_facts: False
+  
+  vars_prompt:
+    - name: usr_name
+      prompt: "Name of user to be created/updated :"
+      private: no
+  
+  vars:
+  
+    soft_lmt: 900000
+    hard_lmt: 100000
+    mount_p: /home
+    key_file: '~/all-keys/{{usr_name}}'
+
+  tasks:
+
+  - stat: path='~/all-keys/{{usr_name}}'
+    register: key_file_generated
+    delegate_to: 127.0.0.1
+    become: no
+
+  - debug: msg="{{key_file_generated}}"
+  
+  - name: Generating SSH Keys for the {{usr_name}}
+    delegate_to: 127.0.0.1
+    become: no
+    command: ssh-keygen -f ~/all-keys/{{usr_name}} -b 2048 -N "" -t rsa 
+    when: key_file_generated.stat.exists == False
+  
+  - name: Creation of user
+    user: name={{usr_name}} state=present generate_ssh_key=no
+  
+  - name: Adding authorized Key
+    authorized_key: 
+      user: '{{usr_name}}'
+      state: present
+      key: "{{ lookup('file', '{{key_file}}.pub') }}"
+      comment: '{{usr_name}}_user_key'
+      manage_dir: yes 
+  
+  - name: Adding quota for the {{usr_name}}
+    command: setquota -u {{usr_name}} {{soft_lmt}} {{hard_lmt}} 0 0 {{mount_p}}

@@ -1,0 +1,32 @@
+---
+- hosts: bastion
+  become: yes
+  gather_facts: False
+  vars_prompt:
+    - name: usr_name
+      prompt: "Name of user to be created/updated :"
+      private: no
+    - name: pub_key_path
+      prompt: "Enter absolute path of public key :"
+      private: no
+  vars:
+    soft_lmt: 900000
+    hard_lmt: 100000
+    mount_p: /home
+
+  tasks:
+    - stat: path={{pub_key_path}}
+      register: key_file_generated
+      delegate_to: 127.0.0.1
+      become: no
+    - name: Creation of user
+      user: name={{usr_name}} state=present generate_ssh_key=no    
+    - name: Adding authorized Key
+      authorized_key: 
+        user: '{{usr_name}}'
+        state: present
+        key: "{{ lookup('file', '{{pub_key_path}}') }}"
+        comment: '{{usr_name}}_user_key'
+        manage_dir: yes 
+    - name: Adding quota for the {{usr_name}}
+      command: setquota -u {{usr_name}} {{soft_lmt}} {{hard_lmt}} 0 0 {{mount_p}}
