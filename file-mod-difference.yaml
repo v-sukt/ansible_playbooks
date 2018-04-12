@@ -1,0 +1,20 @@
+---
+# Assuming the log_path creates files everyday like logrotate with date %Y%m%d suffix 
+# ...following plays will provide the difference between two files - you can further extend this to 
+#     execute some action if the difference is less or more than expected 
+#     e.g. ETL jobs that create intermediate state data ...
+- hosts: localhost
+  vars:
+    local_path: /tmp/testfiles/
+  tasks:
+    - stat: path="{{local_path}}/testlog.log"
+      register: last_log
+    - command: date --date "1 days ago {{ansible_date_time.date}}" +%Y%m%d
+      register: prev_log_date
+    - stat: path="{{local_path}}/testlog.log-{{prev_log_date.stdout}}"
+      register: prev_log
+    - debug: msg="{{ prev_log }}"
+#    Uncomment the following lines to see the values to_datetime is to convert str to date - otherwise it's str o/p
+#    - debug: msg="modifiction time for 1 - {{ '%Y-%m-%d %H:%M:%S' | strftime(last_log.stat.mtime)|to_datetime }} "
+#    - debug: msg="modifiction time for 2 - {{ '%Y-%m-%d %H:%M:%S' | strftime(prev_log.stat.mtime)|to_datetime}} "
+    - debug: msg="The difference is {{ ('%Y-%m-%d %H:%M:%S' | strftime(last_log.stat.mtime)|to_datetime) - ('%Y-%m-%d %H:%M:%S' | strftime(prev_log.stat.mtime)|to_datetime) }}"
