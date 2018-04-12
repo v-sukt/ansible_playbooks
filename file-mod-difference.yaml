@@ -18,3 +18,4 @@
 #    - debug: msg="modifiction time for 1 - {{ '%Y-%m-%d %H:%M:%S' | strftime(last_log.stat.mtime)|to_datetime }} "
 #    - debug: msg="modifiction time for 2 - {{ '%Y-%m-%d %H:%M:%S' | strftime(prev_log.stat.mtime)|to_datetime}} "
     - debug: msg="The difference is {{ ('%Y-%m-%d %H:%M:%S' | strftime(last_log.stat.mtime)|to_datetime) - ('%Y-%m-%d %H:%M:%S' | strftime(prev_log.stat.mtime)|to_datetime) }}"
+      when: "{{ ( ('%Y-%m-%d %H:%M:%S' | strftime(last_log.stat.mtime)|to_datetime) - ('%Y-%m-%d %H:%M:%S' | strftime(prev_log.stat.mtime)|to_datetime) ).seconds}}| int >= 300"
