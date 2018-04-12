@@ -1,4 +1,4 @@
-## Ansible ad-hoc commands
+## Ansible ad-hoc playbooks
 useful snippets from my various playbooks
 
 #### remote-script.yaml 
