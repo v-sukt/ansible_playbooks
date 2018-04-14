@@ -1,0 +1,28 @@
+---
+
+# 
+# The playbook sample that needs to be executed from say cronjob/in your absence but expects password to connect
+# ... using ansible-vault (requires ssh-pass installed) below is encrypted sample - vault file : vault-file.txt
+#     expect module requires python-pexpect package...
+
+- hosts: localhost
+  vars:
+    password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38626134306634636639663334353637306235316666306537376431333466613033646232383238
+          3262303663333735303634663732393637636464373066350a646161376131346135336135653335
+          31613338316365336335613237393138656333666166333137333466396330333835396539393338
+          3530356536613365630a356665306230636330653363396335346135616630323031626232363065
+          6237
+  tasks:
+    - name: Executing with password
+      expect:
+         # I had to use absolute path when invoking from crontab
+         command: /usr/local/bin/ansible-playbook -k motd.yml -vv
+         timeout: 300
+         responses:
+          <?i>SSH Password: "{{ password }}"
+      no_log: true
+      register: expect_op
+      #remember using this otherwise the password is logged in syslog/messages file
+    - debug: var=expect_op
