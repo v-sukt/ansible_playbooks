@@ -1,0 +1,31 @@
+--- # playbook to remove log files older than 5 weeks - works well on debian liek and redhat like systems
+- hosts: all
+  become: true
+
+  vars:
+    older_val : 5w
+    dirs: "/var/log,/tmp/,/var/tmp"
+
+  tasks:
+    - name: Get files older than {{ older_val }} days
+      find:
+        age: "{{ older_val }}" # file with age equal or more than the value| takes form seconds, minutes, hours, days, or weeks with first character of it, if just number is specified considers it as seconds
+        age_stamp: mtime     # The method to find the age| takes form time, ctime, mtime (default)
+        paths: "{{ dirs }}"  # the list of directories
+        recurse: yes         # recursively scan the directories
+        #size: 1m             # files of 1m or more can be used
+        file_type: file      # this can take the files type| takes values link, file, directory, any
+        patterns: ".+.log.[1-100].gz,.+log-[0-9]{8}.gz,.+-[0-9]{8}" # Remove files like syslog.1.gz or messages-20180215 or access_log-20170926.gz
+        use_regex: true
+      register: older_files
+
+    - name: Remove the older files
+      file:
+        path: "{{ item.path }}" 
+        state: absent
+      with_items: "{{ older_files.files }}"
+
+    - debug: msg="Removed file {{item.path}}"
+      with_items: "{{ older_files.files }}"
+
+#NOTE: In the remove file section I had to use item.path though seems un-convenient but that's required. The contents of older_files is a list of dictionarieswith one of it's key pointing to the actual path of file so even though each list element can be accessed with older_files.files.[index-value].path. It can't be directly used as reference in with_items unless numeric loop is used (? never tried), so had to get the array/list element in item and refer its' path using {{ item.path }}
